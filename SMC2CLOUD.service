@@ -1,0 +1,13 @@
+[Unit]
+Description=Service to query log events from the NGFW and upload to AWS Security Hub and Azure Sentinel
+StartLimitBurst=3
+StartLimitIntervalSec==180
+[Service]
+WorkingDirectory=/opt/ngfw_2_cloud
+ExecStart=/opt/ngfw_2_cloud/venv/bin/python3 /opt/ngfw_2_cloud/ServiceRunner.py
+Restart=on-failure
+RestartSec=60
+RemainAfterExit=no
+User=root
+[Install]
+WantedBy=multi-user.target

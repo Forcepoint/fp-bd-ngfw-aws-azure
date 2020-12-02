@@ -1,0 +1,5 @@
+smc-python==0.6.2
+boto3==1.12.37
+smc-python-monitoring==1.2.0
+colorama==0.4.3
+format-cef==0.0.4

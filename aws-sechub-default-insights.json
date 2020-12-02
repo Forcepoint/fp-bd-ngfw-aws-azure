@@ -1,0 +1,57 @@
+[
+  {
+    "Name": "Top NGFW Policy Breaches",
+    "Filters": {
+      "Title": [
+        {
+          "Comparison": "EQUALS",
+          "Value": "Forcepoint NGFW"
+        }
+      ],
+      "RecordState": [
+        {
+          "Comparison": "EQUALS",
+          "Value": "ACTIVE"
+        }
+      ]
+    },
+    "GroupByAttribute": "Type"
+  },
+  {
+    "Name": "Forcepoint NGFW breaches by severity",
+    "Filters": {
+      "Title": [
+        {
+          "Comparison": "EQUALS",
+          "Value": "Forcepoint NGFW"
+        }
+      ],
+      "RecordState": [
+        {
+          "Comparison": "EQUALS",
+          "Value": "ACTIVE"
+        }
+      ]
+    },
+    "GroupByAttribute": "SeverityLabel"
+  },
+  {
+    "Name": "Forcepoint NGFW breaches by Generator",
+    "Filters": {
+      "Title": [
+        {
+          "Comparison": "EQUALS",
+          "Value": "Forcepoint NGFW"
+        }
+      ],
+      "RecordState": [
+        {
+          "Comparison": "EQUALS",
+          "Value": "ACTIVE"
+        }
+      ]
+    },
+    "GroupByAttribute": "GeneratorId"
+  }
+]
+

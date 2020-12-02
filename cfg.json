@@ -1,0 +1,1 @@
+{"host-ip": "http://", "host-port": "", "client-api-key": "", "fetch-size": null, "run-interval": null, "default-filter": "", "extra-filters-enabled": false, "extra-filters": [], "AwsAccountId": "", "aws_access_key_id": "", "aws_secret_access_key": "", "region_name": "", "azure-integration": false, "aws-integration": true, "azure-agent-script": "", "latest-date": ""}
