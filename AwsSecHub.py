@@ -1,10 +1,10 @@
 from collections import deque
 
 import boto3
-from botocore.exceptions import EndpointConnectionError
+from botocore.exceptions import EndpointConnectionError, ClientError
 
 from CommonUtils import open_config_file, write_to_log, chunker, open_insights_file, open_insights_arn_file, \
-    write_to_insights_arn_file
+    write_to_insights_arn_file, write_config_file
 
 cfg = open_config_file()
 
@@ -24,7 +24,9 @@ if aws_integration:
 
 
 def enable_batch_import_findings():
-    product_arn = f"arn:aws:securityhub:{cfg['region_name']}:{cfg['AwsAccountId']}:product/forcepoint/forcepoint-ngfw"
+    if not cfg.get('aws-integration', False):
+        return
+    product_arn = f"arn:aws:securityhub:{cfg['region_name']}:365761988620:product/forcepoint/forcepoint-ngfw"
     try:
         client.enable_import_findings_for_product(ProductArn=product_arn)
     except client.exceptions.ResourceConflictException as exception:
@@ -32,22 +34,35 @@ def enable_batch_import_findings():
 
 
 def setup_sec_hub():
+    if not cfg.get('aws-integration', False):
+        return
     try:
         client.enable_security_hub()
     except client.exceptions.ResourceConflictException as exception:
         write_to_log(exception)
 
 
-async def amazon_security_hub_batch_upload(asff_findings):
+async def amazon_security_hub_batch_upload(asff_findings, max_finding_date):
+    if not cfg.get('aws-integration', False):
+        return
     try:
         # The max batch size allowed by boto upload is 100
         chunked_values = chunker(asff_findings, 100)
-
         queue = deque(__sanitise_list_input(chunked_values))
 
         # Upload to AWS Security Hub and write the response to a log file
         while queue:
-            write_to_log(client.batch_import_findings(Findings=queue.popleft()))
+            try:
+                resp = client.batch_import_findings(Findings=queue.popleft())
+                if resp['FailedCount'] > 0:
+                    write_to_log(resp['FailedFindings'])
+                    return
+            except ClientError as e:
+                write_to_log(e.response)
+                return
+
+        cfg['latest-date'] = max_finding_date
+        write_config_file(cfg)
 
     except EndpointConnectionError as exception:
         write_to_log(exception)
@@ -55,6 +70,8 @@ async def amazon_security_hub_batch_upload(asff_findings):
 
 # Create the default insights if they haven't already been created
 def create_default_insights():
+    if not cfg.get('aws-integration', False):
+        return
     try:
         insight_arns = open_insights_arn_file()
         aws_insight_arns = retrieve_insight_arns_as_list()
@@ -91,6 +108,8 @@ def __sanitise_list_input(chunked_list):
 
 
 def retrieve_insight_arns_as_list():
+    if not cfg.get('aws-integration', False):
+        return
     get_insights = client.get_insights()['Insights']
 
     aws_insight_arns = list()

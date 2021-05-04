@@ -3,6 +3,8 @@ import re
 
 
 def handle_extra_filters(cfg):
+    if len(cfg['extra-filters']) == 0:
+        return
     print('Your current extra filters are: ')
     for index, extra_filter in enumerate(cfg['extra-filters']):
         print(str(index + 1) + ' : ' + extra_filter)

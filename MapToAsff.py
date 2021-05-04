@@ -2,7 +2,7 @@ from CommonUtils import open_config_file, datetime_to_iso8601_format
 
 cfg = open_config_file()
 
-product_arn = f"arn:aws:securityhub:{cfg['region_name']}:{cfg['AwsAccountId']}:product/forcepoint/forcepoint-ngfw"
+product_arn = f"arn:aws:securityhub:{cfg['region_name']}:365761988620:product/forcepoint/forcepoint-ngfw"
 
 
 def __normalize_severity_ngfw(record):
