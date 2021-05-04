@@ -1,9 +1,11 @@
 import asyncio
 import threading
 
+import requests
+
 from AwsSecHub import amazon_security_hub_batch_upload, create_default_insights, setup_sec_hub, \
     enable_batch_import_findings
-from CommonUtils import open_config_file, write_to_log, write_config_file, format_date_smc_filter
+from CommonUtils import open_config_file, write_to_log, format_date_smc_filter
 from MapToAsff import create_asff_object
 import itertools
 
@@ -15,6 +17,12 @@ from MapToCef import format_smc_logs_to_cef
 from azure_agent_connector import send_sentinel_data
 
 cfg = open_config_file()
+
+
+def __get_latest_api_version(smc_url):
+    resp = requests.get(smc_url+'/api')
+    js = resp.json()
+    return js['version'][len(js['version']) - 1]['rel']
 
 
 def __setup_smc_query_filter(smc_filter):
@@ -31,7 +39,7 @@ def run_query_and_upload():
     aws_integration = cfg.get('aws-integration', False)
     azure_integration = cfg.get('azure-integration', False)
 
-    # Create default insights if they don't already exist - TODO move this step to configurator
+    # Create default insights if they don't already exist
     if aws_integration:
         threading.Thread(target=create_default_insights).start()
         setup_sec_hub()
@@ -41,7 +49,9 @@ def run_query_and_upload():
 
     smc_url = cfg['host-ip'] + ':' + cfg['host-port']
 
-    session.login(url=smc_url, api_key=cfg['client-api-key'])
+    api_version = __get_latest_api_version(smc_url)
+
+    session.login(url=smc_url, api_key=cfg['client-api-key'], api_version=api_version)
 
     try:
         query = LogQuery(fetch_size=int(cfg['fetch-size']))
@@ -68,19 +78,18 @@ def run_query_and_upload():
         if record_list:
             # Find the max date in the record list and store this to add to the filter for subsequent queries
             # to avoid uploading duplicates/wasting bandwidth. This value is written to the cfg.json file
-            cfg['latest-date'] = format_date_smc_filter(max(item['Creation Time'] for item in record_list))
-            write_config_file(cfg)
+            max_finding_date = format_date_smc_filter(max(item['Creation Time'] for item in record_list))
 
             loop = asyncio.get_event_loop()
 
             # Map to appropriate format and upload if integration is active
             if aws_integration:
                 aws_task = loop.create_task(
-                    amazon_security_hub_batch_upload(list(map(create_asff_object, record_list))))
+                    amazon_security_hub_batch_upload(list(map(create_asff_object, record_list)), max_finding_date))
                 loop.run_until_complete(aws_task)
 
             if azure_integration:
-                send_sentinel_data(list(map(format_smc_logs_to_cef, record_list)))
+                send_sentinel_data(list(map(format_smc_logs_to_cef, record_list)), max_finding_date)
 
     # This catches any issues related to requesting events with a malformed filter
     except FetchAborted as exception:

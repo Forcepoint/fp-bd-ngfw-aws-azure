@@ -1,6 +1,5 @@
-from format_cef import format_cef
-
-from CommonUtils import datetime_string_to_object
+from cefevent import CEFEvent
+from CommonUtils import datetime_to_timestamp
 
 """Produces a CEF compliant message from the arguments.
 
@@ -16,27 +15,29 @@ from CommonUtils import datetime_string_to_object
 
 
 def format_smc_logs_to_cef(record):
-    result = format_cef(
-        vendor='Forcepoint',
-        product='NGFW',
-        product_version='6.60',
-        event_id=record['Event ID'],
-        event_name=create_event_name(record),
-        severity=normalize_severity_ngfw(record),
-        extensions={
-            'deviceAction': record.get('Action', 'N/A'),
-            'sourceAddress': record.get('Src Addrs', '0.0.0.0'),
-            'destinationAddress': record.get('Dst Addrs', '0.0.0.0'),
-            'sourcePort': int(record.get('Src Port', 0)),
-            'destinationPort': int(record.get('Dst Port', 0)),
-            'applicationProtocol': record.get('Network Application', 'N/A'),
-            'transportProtocol': record.get('IP Protocol', 'N/A'),
-            'startTime': datetime_string_to_object(record['Creation Time']),
-            'deviceEventCategory': record.get('Situation Type', 'N/A'),
-            'deviceCustomString1': record.get('Rule Tag', 'N/A')
-        }
-    )
-    return result
+    c = CEFEvent()
+
+    c.set_field('name', 'Event Name')
+    c.set_field('deviceVendor', 'Forcepoint')
+    c.set_field('deviceProduct', 'NGFW')
+    c.set_field('deviceVersion', '6.60')
+    c.set_field('name', create_event_name(record))
+    c.set_field('severity', normalize_severity_ngfw(record), )
+    c.set_field('signatureId', record['Event ID'])
+    c.extensions = {
+        'applicationProtocol': record.get('Network Application', 'N/A'),
+        'deviceCustomString1': record.get('Rule Tag', 'N/A'),
+        'src': record['Src Addrs'],
+        'destinationAddress': record.get('Dst Addrs', '0.0.0.0'),
+        'sourcePort': int(record.get('Src Port', 0)),
+        'destinationPort': int(record.get('Dst Port', 0)),
+        'deviceAction': record.get('Action', 'Action'),
+        'transportProtocol': record.get('IP Protocol', 'TProto'),
+        'startTime': datetime_to_timestamp(record['Creation Time']),
+        'deviceEventCategory': record.get('Situation Type', 'ECategory'),
+    }
+
+    return c.build_cef()
 
 
 def create_event_name(record):

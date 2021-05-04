@@ -1,4 +1,5 @@
 import json
+import time
 from datetime import datetime
 from itertools import zip_longest
 
@@ -53,6 +54,10 @@ def datetime_to_iso8601_format(time):
 
 def datetime_string_to_object(time):
     return datetime.strptime(time, '%Y-%m-%d %H:%M:%S')
+
+
+def datetime_to_timestamp(dt):
+    return int(time.mktime(datetime.strptime(dt, "%Y-%m-%d %H:%M:%S").timetuple()))
 
 
 def format_date_smc_filter(date):
