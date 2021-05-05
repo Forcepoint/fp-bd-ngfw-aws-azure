@@ -2,6 +2,7 @@
 shopt -s expand_aliases
 alias python='python3'
 
+apt update
 apt install curl
 apt install python3-venv
 apt install python-ctypes
@@ -24,7 +25,7 @@ source venv/bin/activate
 python3 -m pip install -r requirements.txt
 
 # Make Directory for NGFW integration
-mkdir /opt/ngfw_2_cloud
+mkdir -p /opt/ngfw_2_cloud
 
 # Move files to NGFW integration directory
 cp -r ./* /opt/ngfw_2_cloud
