@@ -1,5 +1,5 @@
-boto3==1.12.37
-botocore==1.15.49
+boto3==1.17.99
+botocore==1.20.100
 cefevent==0.5.1
 certifi==2020.12.5
 chardet==4.0.0
@@ -10,9 +10,10 @@ idna==2.10
 jmespath==0.10.0
 python-dateutil==2.8.1
 requests==2.25.1
-s3transfer==0.3.6
+s3transfer==0.4.0
 six==1.15.0
 smc-python==0.6.2
 smc-python-monitoring==1.2.0
-urllib3==1.25.11
+urllib3==1.26.5
 websocket-client==0.58.0
+
